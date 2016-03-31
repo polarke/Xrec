@@ -11,9 +11,6 @@ import org.apache.log4j.Level
 
 abstract class Xrec[User: ClassTag, Item: ClassTag] {
   
-//  implicit val userTag: ClassTag[User]
-//  implicit val itemTag: ClassTag[Item]
-  
   def loadUserRatings(sc: SparkContext, file: String,
                       parseLine: String => (User, Item, Double))
             : RDD[(User, Iterable[(Item, Double)])] =
@@ -56,9 +53,10 @@ abstract class Xrec[User: ClassTag, Item: ClassTag] {
       val n = x.size
       val mean = sum / n
       (mean, x.map(y => (y._1, y._2 - mean)))
-    }
+    } persist()
     val means = temp.mapValues(_._1).persist()
     val normalizedRatings = temp.mapValues(_._2).persist()
+    temp.unpersist()
     (means, normalizedRatings)
   }
   

@@ -30,13 +30,14 @@ abstract class PearsonModel[User: ClassTag, Item: ClassTag] extends Xrec[User, I
       val n = x.size
       val mean = sum / n
       (mean, x.map(y => (y._1, y._2 - mean)))
-    }
+    } persist()
     val meansOfUsers = temp.mapValues(_._1).persist()
     val normalizedRatingsOfUsers = temp.mapValues(_._2).persist()
     val normalizedRatingsOfItems = normalizedRatingsOfUsers.flatMap { case (a, b) =>
       for (c <- b) yield (c._1, (a, c._2))
     }.groupByKey(new XrecHashPartitioner[User, Item](numOfPartitions))
      .persist()
+    temp.unpersist()
     (meansOfUsers, normalizedRatingsOfUsers, normalizedRatingsOfItems)
   }
   
@@ -58,7 +59,7 @@ abstract class PearsonModel[User: ClassTag, Item: ClassTag] extends Xrec[User, I
       allSimilarities
     } else {
       allSimilarities.mapValues(x => 
-        // take top-k elements
+        // take top-k elements; this part could be improved!
         x.foldLeft(List.empty[(User, Double)])((xs, y) =>
           if (xs.size < k) (y::xs).sortBy(e => e._2)
           else {

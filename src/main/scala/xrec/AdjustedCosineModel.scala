@@ -26,12 +26,13 @@ abstract class AdjustedCosineModel[User: ClassTag, Item: ClassTag] extends Xrec[
       val n = x.size
       val mean = sum / n
       (mean, x.map(y => (y._1, y._2 - mean)))
-    }.persist()
+    } persist()
     val meansOfItems = temp.mapValues(_._1).persist()
     val normalizedRatingsOfItems= temp.mapValues(_._2).persist()
     val normalizedRatingsOfUsers = normalizedRatingsOfItems.flatMap { case (a, b) =>
       for (c <- b) yield (c._1, (a, c._2))
     }.groupByKey().persist()
+    temp.unpersist()
     (meansOfItems, normalizedRatingsOfUsers, normalizedRatingsOfItems)
   }
   
@@ -54,7 +55,7 @@ abstract class AdjustedCosineModel[User: ClassTag, Item: ClassTag] extends Xrec[
       allSimilarities.persist()
     } else {
       allSimilarities.mapValues(x => 
-        // take top-k elements
+        // take top-k elements; this part could be improved!
         x.foldLeft(List.empty[(User, Double)])((xs, y) =>
           if (xs.size < k) (y::xs).sortBy(e => e._2)
           else {
@@ -80,7 +81,7 @@ abstract class AdjustedCosineModel[User: ClassTag, Item: ClassTag] extends Xrec[
         if (x > 5.0) x = 5.0
         else if (x < 1.0) x = 1.0
         ((u, i), (x, b))
-      } 
+      }
     } persist()
   )
   
