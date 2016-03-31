@@ -10,7 +10,7 @@ import org.apache.spark.rdd.RDD
 import org.apache.log4j.Logger
 import org.apache.log4j.Level
 
-trait CrossDomainModel[User, Item] extends PearsonModel[User, Item] {
+abstract class CrossDomainModel[User: ClassTag, Item: ClassTag] extends PearsonModel[User, Item] {
   
   def parseLine: String => (User, Item, Double)
   def isSourceUser: User => Boolean
@@ -74,9 +74,7 @@ trait CrossDomainModel[User, Item] extends PearsonModel[User, Item] {
                  }
                  .map{case ((u, i), r) => (i, (u, r))}
                  .groupByKey(new XrecHashPartitioner[User, Item](numOfPartitions))
-    val uTag = userTag
-    val iTag = itemTag
-    object itemPearsonModel extends PearsonModel[Item, User] {val userTag = iTag; val itemTag = uTag}
+    object itemPearsonModel extends PearsonModel[Item, User]
     val testRatings = itemPearsonModel.loadTestRatings(sc, testCases, line => {val (u, i, r) = parseLine(line); (i, u, r)})
     itemPearsonModel.run(sc, targetProfile, testRatings, 0)
   }

@@ -9,10 +9,10 @@ import org.apache.spark.rdd.RDD
 import org.apache.log4j.Logger
 import org.apache.log4j.Level
 
-trait Xrec[User, Item] {
+abstract class Xrec[User: ClassTag, Item: ClassTag] {
   
-  implicit val userTag: ClassTag[User]
-  implicit val itemTag: ClassTag[Item]
+//  implicit val userTag: ClassTag[User]
+//  implicit val itemTag: ClassTag[Item]
   
   def loadUserRatings(sc: SparkContext, file: String,
                       parseLine: String => (User, Item, Double))
@@ -111,9 +111,6 @@ trait Xrec[User, Item] {
 object XrecMain extends Xrec[Int, Int] {
   
   val numOfPartitions = 4
-  
-  implicit val userTag = ClassTag.Int
-  implicit val itemTag = ClassTag.Int
   
   def main(args: Array[String]) {
     Logger.getLogger("org").setLevel(Level.WARN)

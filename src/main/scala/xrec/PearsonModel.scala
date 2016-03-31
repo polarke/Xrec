@@ -9,7 +9,7 @@ import org.apache.spark.rdd.RDD
 import org.apache.log4j.Logger
 import org.apache.log4j.Level
 
-trait PearsonModel[User, Item] extends Xrec[User, Item] {
+abstract class PearsonModel[User: ClassTag, Item: ClassTag] extends Xrec[User, Item] {
   
   def loadBaseRatings(sc: SparkContext, file: String, parseLine: String => (User, Item, Double)):
            (RDD[(User, Double)],
@@ -113,9 +113,7 @@ trait PearsonModel[User, Item] extends Xrec[User, Item] {
 
 object PearsonModelMain extends PearsonModel[Int, Int] with MultiplicationSimilarityExpander[Int] {
   
-  implicit val userTag = ClassTag.Int
-  implicit val itemTag = ClassTag.Int
-  implicit val tTag = ClassTag.Int
+  override val tTag = ClassTag.Int
   
   val parseLine = (line: String) => {
     val arr = line.split("\t")

@@ -88,9 +88,6 @@ abstract class AdjustedCosineModel[User: ClassTag, Item: ClassTag] extends Xrec[
 
 object AdjustedCosineModel extends AdjustedCosineModel[Int, Int] {
   
-  implicit val userTag = ClassTag.Int
-  implicit val itemTag = ClassTag.Int
-  
   def numOfPartitions = 4
   
   val parseLine = (line: String) => {
